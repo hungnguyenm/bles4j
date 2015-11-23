@@ -6,7 +6,7 @@
 
     <!-- The Basics -->
     <groupId>edu.upenn.cis.precise</groupId>
-    <artifactId>BLES4J</artifactId>
+    <artifactId>bles4j</artifactId>
     <version>1.0</version>
 
     <dependencies>
