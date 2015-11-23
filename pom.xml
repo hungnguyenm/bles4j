@@ -6,7 +6,7 @@
 
     <!-- The Basics -->
     <groupId>edu.upenn.cis.precise</groupId>
-    <artifactId>bles4j</artifactId>
+    <artifactId>BLES4J</artifactId>
     <version>1.0</version>
 
     <dependencies>
@@ -31,6 +31,10 @@
             <version>4.0</version>
         </dependency>
     </dependencies>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
 
     <!-- Build Settings -->
     <build>

@@ -29,8 +29,6 @@ public interface IUbertoothControl extends Library {
 
     int cmd_get_partnum(Pointer devh);
 
-    void print_serial(byte[] serial, byte[] fileptr);
-
     int cmd_get_serial(Pointer devh, byte[] serial);
 
     int cmd_set_modulation(Pointer devh, int mod);

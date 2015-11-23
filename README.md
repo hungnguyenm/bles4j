@@ -15,6 +15,10 @@ Follow instructions at [Ubertooth website](https://github.com/greatscottgadgets/
 and install host tools. It is also recommended to upgrade
 [Ubertooth firmware](https://github.com/greatscottgadgets/ubertooth/wiki/Firmware) to the latest one.
 
+Notes
+-------
++ The project only supports 1 connected Ubertooth One at a time. Multiple devices support is not in development plan.
+
 License
 -------
 BLES4J is distributed under the MIT license.
