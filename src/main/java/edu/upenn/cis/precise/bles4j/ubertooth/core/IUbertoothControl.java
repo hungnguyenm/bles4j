@@ -2,11 +2,42 @@ package edu.upenn.cis.precise.bles4j.ubertooth.core;
 
 import com.sun.jna.Library;
 import com.sun.jna.Pointer;
+import com.sun.jna.Structure;
+import com.sun.xml.internal.bind.annotation.OverrideAnnotationOf;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Hung Nguyen (hungng@seas.upenn.edu)
  */
 public interface IUbertoothControl extends Library {
+    class UsbPktRx extends Structure {
+        public static class ByReference extends UsbPktRx implements Structure.ByReference {
+        }
+
+        public static class ByValue extends UsbPktRx implements Structure.ByValue {
+        }
+
+        public byte pkt_type;
+        public byte status;
+        public byte channel;
+        public byte clkn_high;
+        public int clk100ns;
+        public byte rssi_max;
+        public byte rssi_min;
+        public byte rssi_avg;
+        public byte rssi_count;
+        public byte[] reserved = new byte[2];
+        public byte[] data = new byte[50];
+
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList("pkt_type", "status", "channel", "clkn_high", "clk100ns",
+                    "rssi_max", "rssi_min", "rssi_avg", "rssi_count", "reserved", "data");
+        }
+    }
+
     void show_libusb_error(int error_code);
 
     int cmd_rx_syms(Pointer devh);
@@ -103,7 +134,7 @@ public interface IUbertoothControl extends Library {
 
     int cmd_set_crc_verify(Pointer devh, int verify);
 
-    int cmd_poll(Pointer devh, byte[] p);
+    int cmd_poll(Pointer devh, UsbPktRx.ByReference p);
 
     int cmd_btle_promisc(Pointer devh);
 

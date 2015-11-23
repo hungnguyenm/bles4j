@@ -65,6 +65,9 @@ public class UbertoothOne {
         }
     }
 
+    // Internal handling
+
+
     // Ubertooth Utilities
     public boolean isConnected() {
         return connected;
@@ -75,6 +78,16 @@ public class UbertoothOne {
             byte[] version = new byte[255];
             ubertoothControl.cmd_get_rev_num(device, version, 255);
             return Native.toString(version);
+        } else {
+            throw new UbertoothException(UbertoothExceptionCode.UBERTOOTH_ERROR_NOT_CONNECTED.getCode());
+        }
+    }
+
+    public String getCompileInfo() throws UbertoothException {
+        if (connected) {
+            byte[] info = new byte[255];
+            ubertoothControl.cmd_get_compile_info(device, info, 255);
+            return Native.toString(info);
         } else {
             throw new UbertoothException(UbertoothExceptionCode.UBERTOOTH_ERROR_NOT_CONNECTED.getCode());
         }

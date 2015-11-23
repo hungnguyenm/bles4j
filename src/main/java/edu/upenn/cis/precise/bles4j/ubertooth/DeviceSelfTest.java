@@ -15,6 +15,9 @@ public class DeviceSelfTest {
         // Print firmware version
         System.out.println("Firmware version: " + ubertoothOne.getFirmwareRevision());
 
+        // Print compile version
+        System.out.println("Compile version: " + ubertoothOne.getCompileInfo());
+
         // Print serial number
         System.out.println("MCU Serial Number: " + ubertoothOne.getMcuSerialNumber());
 
