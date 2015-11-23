@@ -1,4 +1,14 @@
+# IDEA
+.idea/
+*.iml
+
+# Ant
+out/
+junit-report/
+
 *.class
+target/classes
+target/*.txt
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/

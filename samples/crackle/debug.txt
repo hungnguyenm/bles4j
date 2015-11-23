@@ -1,0 +1,36 @@
+Warning: No output file specified. Won't decrypt any packets.
+connect_found: 1
+preq_found: 1
+pres_found: 1
+confirm_found: 2
+random_found: 2
+enc_req_found: 1
+enc_rsp_found: 1
+IA: 08:3e:8e:e1:0b:3e
+RA: 78:c5:e5:6e:dd:e8
+IAt: 0
+RAt: 0
+PREQ: 01 00 10 05 00 03 01
+PRES: 01 00 10 05 00 00 02
+MCONFIRM: 5d 2c 8d 41 c8 5b 68 3d e1 20 80 d7 3e 98 bb fe
+SCONFIRM: 29 cb f8 8d b0 a8 71 70 a1 05 b5 87 cb 8b ef 78
+MRAND: fc a5 7d 0f a4 ae d3 aa f4 01 46 fd eb 92 b6 ab
+SRAND: d8 5a 8e 26 63 e8 ff 81 30 54 06 40 e2 0b aa 7d
+Rand: 00 00 00 00 00 00 00 00
+EDIV: 00 00
+SKDm: 9f 6b 01 3d 7e b2 5f 87
+IVm:  cc c7 6e ea
+SKDs: 68 f5 ad d3 ca 18 51 86
+IVs:  66 de 99 61
+--- Debug calc_confirm ---
+key:  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+p1:  01 00 10 05 00 00 02 01 00 10 05 00 03 01 00 00
+p2:  00 00 00 00 08 3e 8e e1 0b 3e 78 c5 e5 6e dd e8
+p1 ^= rand:  fd a5 6d 0a a4 ae d1 ab f4 11 43 fd e8 93 b6 ab
+out after aes:  8f 9e 5b 66 e3 b1 9b a4 52 e3 f6 c1 81 9a 62 3f
+p1 = out ^ p2:  8f 9e 5b 66 eb 8f 15 45 59 dd 8e 04 64 f4 bf d7
+out after aes:  5d 2c 8d 41 c8 5b 68 3d e1 20 80 d7 3e 98 bb fe
+TK found: 000000
+ding ding ding, using a TK of 0! Just Cracks(tm)
+STK: 59 d4 b3 5e ce 0d f5 48 c1 0e fe 17 e9 da 1f 4c
+Specify an output file with -o to decrypt packets!
