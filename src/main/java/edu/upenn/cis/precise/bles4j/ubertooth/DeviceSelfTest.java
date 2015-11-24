@@ -1,5 +1,6 @@
 package edu.upenn.cis.precise.bles4j.ubertooth;
 
+import edu.upenn.cis.precise.bles4j.ubertooth.devices.UbertoothOne;
 import edu.upenn.cis.precise.bles4j.ubertooth.exception.UbertoothException;
 
 /**
@@ -26,17 +27,17 @@ public class DeviceSelfTest {
 
         // Cycle all LEDs
         System.out.println("Turn all LEDs ON");
-        ubertoothOne.setUsrLed(1);
-        ubertoothOne.setTxLed(1);
-        ubertoothOne.setRxLed(1);
+        ubertoothOne.setUsrLed((short)1);
+        ubertoothOne.setTxLed((short)1);
+        ubertoothOne.setRxLed((short)1);
         try {
             Thread.sleep(2000);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
         }
-        ubertoothOne.setUsrLed(0);
-        ubertoothOne.setTxLed(0);
-        ubertoothOne.setRxLed(0);
+        ubertoothOne.setUsrLed((short)0);
+        ubertoothOne.setTxLed((short)0);
+        ubertoothOne.setRxLed((short)0);
         System.out.println("Turn all LEDs OFF");
 
         // Clean

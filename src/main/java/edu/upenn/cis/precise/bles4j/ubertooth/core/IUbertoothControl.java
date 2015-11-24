@@ -3,7 +3,6 @@ package edu.upenn.cis.precise.bles4j.ubertooth.core;
 import com.sun.jna.Library;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
-import com.sun.xml.internal.bind.annotation.OverrideAnnotationOf;
 
 import java.util.Arrays;
 import java.util.List;
@@ -38,7 +37,7 @@ public interface IUbertoothControl extends Library {
         }
     }
 
-    void show_libusb_error(int error_code);
+    int cmd_ping(Pointer devh);
 
     int cmd_rx_syms(Pointer devh);
 
@@ -46,15 +45,15 @@ public interface IUbertoothControl extends Library {
 
     int cmd_led_specan(Pointer devh, int rssi_threshold);
 
-    int cmd_set_usrled(Pointer devh, int state);
+    int cmd_set_usrled(Pointer devh, short state);
 
     int cmd_get_usrled(Pointer devh);
 
-    int cmd_set_rxled(Pointer devh, int state);
+    int cmd_set_rxled(Pointer devh, short state);
 
     int cmd_get_rxled(Pointer devh);
 
-    int cmd_set_txled(Pointer devh, int state);
+    int cmd_set_txled(Pointer devh, short state);
 
     int cmd_get_txled(Pointer devh);
 
@@ -72,9 +71,9 @@ public interface IUbertoothControl extends Library {
 
     int cmd_stop(Pointer devh);
 
-    int cmd_set_paen(Pointer devh, int state);
+    int cmd_set_paen(Pointer devh, short state);
 
-    int cmd_set_hgm(Pointer devh, int state);
+    int cmd_set_hgm(Pointer devh, short state);
 
     int cmd_tx_test(Pointer devh);
 
@@ -82,7 +81,7 @@ public interface IUbertoothControl extends Library {
 
     int cmd_get_palevel(Pointer devh);
 
-    int cmd_set_palevel(Pointer devh, int level);
+    int cmd_set_palevel(Pointer devh, short level);
 
     int cmd_get_channel(Pointer devh);
 
@@ -120,7 +119,7 @@ public interface IUbertoothControl extends Library {
 
     int cmd_clear_afh_map(Pointer devh);
 
-    int cmd_btle_sniffing(Pointer devh, int num);
+    int cmd_btle_sniffing(Pointer devh, short num);
 
     int cmd_get_access_address(Pointer devh);
 
@@ -132,19 +131,19 @@ public interface IUbertoothControl extends Library {
 
     int cmd_get_crc_verify(Pointer devh);
 
-    int cmd_set_crc_verify(Pointer devh, int verify);
+    int cmd_set_crc_verify(Pointer devh, boolean verify);
 
     int cmd_poll(Pointer devh, UsbPktRx.ByReference p);
 
     int cmd_btle_promisc(Pointer devh);
 
-    int cmd_read_register(Pointer devh, int reg);
+    int cmd_read_register(Pointer devh, byte reg);
 
     int cmd_btle_slave(Pointer devh, byte[] mac_address);
 
     int cmd_btle_set_target(Pointer devh, byte[] mac_address);
 
-    int cmd_set_jam_mode(Pointer devh, int mode);
+    int cmd_set_jam_mode(Pointer devh, boolean mode);
 
     int cmd_ego(Pointer devh, int mode);
 }
