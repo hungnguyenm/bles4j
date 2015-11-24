@@ -34,7 +34,7 @@ public interface IUbertoothControl extends Library {
 
     int cmd_get_serial(Pointer devh, byte[] serial);
 
-    int cmd_set_modulation(Pointer devh, int mod);
+    int cmd_set_modulation(Pointer devh, short mod);
 
     int cmd_get_modulation(Pointer devh);
 
@@ -116,7 +116,7 @@ public interface IUbertoothControl extends Library {
 
     int cmd_btle_set_target(Pointer devh, byte[] mac_address);
 
-    int cmd_set_jam_mode(Pointer devh, JamModes mode);
+    int cmd_set_jam_mode(Pointer devh, short mode);
 
     int cmd_ego(Pointer devh, int mode);
 }

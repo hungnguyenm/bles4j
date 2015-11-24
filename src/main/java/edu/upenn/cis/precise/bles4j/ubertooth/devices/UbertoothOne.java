@@ -66,6 +66,20 @@ public class UbertoothOne {
         }
     }
 
+    public UsbPacketRx.ByReference poll() throws UbertoothException {
+        UsbPacketRx.ByReference p = new UsbPacketRx.ByReference();
+        if (connected) {
+            int r = ubertoothControl.cmd_poll(device, p);
+            if (r < 0) {
+                throw new UbertoothException(r);
+            } else {
+                return p;
+            }
+        } else {
+            throw new UbertoothException(UbertoothExceptionCode.UBERTOOTH_ERROR_NOT_CONNECTED.getCode());
+        }
+    }
+
     public void btleSniffing(short num) throws UbertoothException {
         if (connected) {
             int r = ubertoothControl.cmd_btle_sniffing(device, num);
@@ -82,20 +96,6 @@ public class UbertoothOne {
             int r = ubertoothControl.cmd_btle_promisc(device);
             if (r < 0) {
                 throw new UbertoothException(r);
-            }
-        } else {
-            throw new UbertoothException(UbertoothExceptionCode.UBERTOOTH_ERROR_NOT_CONNECTED.getCode());
-        }
-    }
-
-    public UsbPacketRx.ByReference poll() throws UbertoothException {
-        UsbPacketRx.ByReference p = new UsbPacketRx.ByReference();
-        if (connected) {
-            int r = ubertoothControl.cmd_poll(device, p);
-            if (r < 0) {
-                throw new UbertoothException(r);
-            } else {
-                return p;
             }
         } else {
             throw new UbertoothException(UbertoothExceptionCode.UBERTOOTH_ERROR_NOT_CONNECTED.getCode());
@@ -202,7 +202,7 @@ public class UbertoothOne {
         }
     }
 
-    public void setJamMode(JamModes mode) throws UbertoothException {
+    public void setJamMode(short mode) throws UbertoothException {
         if (connected) {
             int r = ubertoothControl.cmd_set_jam_mode(device, mode);
             if (r < 0) {
