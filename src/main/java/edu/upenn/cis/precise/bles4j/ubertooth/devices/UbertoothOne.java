@@ -3,6 +3,7 @@ package edu.upenn.cis.precise.bles4j.ubertooth.devices;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import edu.upenn.cis.precise.bles4j.ubertooth.core.*;
+import edu.upenn.cis.precise.bles4j.ubertooth.core.IUbertoothInterface.*;
 import edu.upenn.cis.precise.bles4j.ubertooth.exception.UbertoothException;
 import edu.upenn.cis.precise.bles4j.ubertooth.exception.UbertoothExceptionCode;
 
@@ -87,8 +88,8 @@ public class UbertoothOne {
         }
     }
 
-    public IUbertoothControl.UsbPktRx.ByReference poll() throws UbertoothException {
-        IUbertoothControl.UsbPktRx.ByReference p = new IUbertoothControl.UsbPktRx.ByReference();
+    public UsbPacketRx.ByReference poll() throws UbertoothException {
+        UsbPacketRx.ByReference p = new UsbPacketRx.ByReference();
         if (connected) {
             int r = ubertoothControl.cmd_poll(device, p);
             if (r < 0) {
@@ -115,6 +116,17 @@ public class UbertoothOne {
     public void analyzeSpectrumLed(short rssi_threshold) throws UbertoothException {
         if (connected) {
             int r = ubertoothControl.cmd_led_specan(device, rssi_threshold);
+            if (r < 0) {
+                throw new UbertoothException(r);
+            }
+        } else {
+            throw new UbertoothException(UbertoothExceptionCode.UBERTOOTH_ERROR_NOT_CONNECTED.getCode());
+        }
+    }
+
+    public void activateRepeater() throws UbertoothException {
+        if (connected) {
+            int r = ubertoothControl.cmd_repeater(device);
             if (r < 0) {
                 throw new UbertoothException(r);
             }
@@ -190,7 +202,7 @@ public class UbertoothOne {
         }
     }
 
-    public void setJamMode(boolean mode) throws UbertoothException {
+    public void setJamMode(JamModes mode) throws UbertoothException {
         if (connected) {
             int r = ubertoothControl.cmd_set_jam_mode(device, mode);
             if (r < 0) {
@@ -223,9 +235,20 @@ public class UbertoothOne {
         }
     }
 
-    public void setPaLevel(short palevel) throws UbertoothException {
+    public void setPaLevel(short level) throws UbertoothException {
         if (connected) {
-            int r = ubertoothControl.cmd_set_palevel(device, palevel);
+            int r = ubertoothControl.cmd_set_palevel(device, level);
+            if (r < 0) {
+                throw new UbertoothException(r);
+            }
+        } else {
+            throw new UbertoothException(UbertoothExceptionCode.UBERTOOTH_ERROR_NOT_CONNECTED.getCode());
+        }
+    }
+
+    public void setSquelchLevel(short level) throws UbertoothException {
+        if (connected) {
+            int r = ubertoothControl.cmd_set_squelch(device, level);
             if (r < 0) {
                 throw new UbertoothException(r);
             }
@@ -262,6 +285,23 @@ public class UbertoothOne {
     // Ubertooth Utilities
     public boolean isConnected() {
         return connected;
+    }
+
+    public String getBoardId() throws UbertoothException {
+        if (connected) {
+            switch (ubertoothControl.cmd_get_board_id(device)) {
+                case 1:
+                    return "Ubertooth Zero";
+                case 2:
+                    return "Ubertooth One";
+                case 3:
+                    return "ToorCon 13 Badge";
+                default:
+                    return "Unknown";
+            }
+        } else {
+            throw new UbertoothException(UbertoothExceptionCode.UBERTOOTH_ERROR_NOT_CONNECTED.getCode());
+        }
     }
 
     public String getFirmwareRevision() throws UbertoothException {
@@ -317,6 +357,30 @@ public class UbertoothOne {
         }
     }
 
+    public void activateIsp() throws UbertoothException {
+        // ISP ~ In-System Programming mode
+        if (connected) {
+            int r = ubertoothControl.cmd_set_isp(device);
+            if (r < 0) {
+                throw new UbertoothException(r);
+            }
+        } else {
+            throw new UbertoothException(UbertoothExceptionCode.UBERTOOTH_ERROR_NOT_CONNECTED.getCode());
+        }
+    }
+
+    public void activateDfu() throws UbertoothException {
+        // Flash Programming (DFU) mode
+        if (connected) {
+            int r = ubertoothControl.cmd_flash(device);
+            if (r < 0) {
+                throw new UbertoothException(r);
+            }
+        } else {
+            throw new UbertoothException(UbertoothExceptionCode.UBERTOOTH_ERROR_NOT_CONNECTED.getCode());
+        }
+    }
+
     // Debug Info
     public boolean isInitialized() {
         return initialized;
@@ -332,6 +396,11 @@ public class UbertoothOne {
 
     public boolean isPingable() {
         return connected && ubertoothControl.cmd_ping(device) == 0;
+    }
+
+    public boolean passTxTest() {
+        // Continuous transmit test
+        return connected && ubertoothControl.cmd_tx_test(device) == 0;
     }
 
     public int readRegister(byte register) throws UbertoothException {

@@ -2,40 +2,13 @@ package edu.upenn.cis.precise.bles4j.ubertooth.core;
 
 import com.sun.jna.Library;
 import com.sun.jna.Pointer;
-import com.sun.jna.Structure;
 
-import java.util.Arrays;
-import java.util.List;
+import edu.upenn.cis.precise.bles4j.ubertooth.core.IUbertoothInterface.*;
 
 /**
  * @author Hung Nguyen (hungng@seas.upenn.edu)
  */
 public interface IUbertoothControl extends Library {
-    class UsbPktRx extends Structure {
-        public static class ByReference extends UsbPktRx implements Structure.ByReference {
-        }
-
-        public static class ByValue extends UsbPktRx implements Structure.ByValue {
-        }
-
-        public byte pkt_type;
-        public byte status;
-        public byte channel;
-        public byte clkn_high;
-        public int clk100ns;
-        public byte rssi_max;
-        public byte rssi_min;
-        public byte rssi_avg;
-        public byte rssi_count;
-        public byte[] reserved = new byte[2];
-        public byte[] data = new byte[50];
-
-        @Override
-        protected List getFieldOrder() {
-            return Arrays.asList("pkt_type", "status", "channel", "clkn_high", "clk100ns",
-                    "rssi_max", "rssi_min", "rssi_avg", "rssi_count", "reserved", "data");
-        }
-    }
 
     int cmd_ping(Pointer devh);
 
@@ -99,7 +72,7 @@ public interface IUbertoothControl extends Library {
 
     int cmd_get_board_id(Pointer devh);
 
-    int cmd_set_squelch(Pointer devh, int level);
+    int cmd_set_squelch(Pointer devh, short level);
 
     int cmd_get_squelch(Pointer devh);
 
@@ -133,7 +106,7 @@ public interface IUbertoothControl extends Library {
 
     int cmd_set_crc_verify(Pointer devh, boolean verify);
 
-    int cmd_poll(Pointer devh, UsbPktRx.ByReference p);
+    int cmd_poll(Pointer devh, UsbPacketRx.ByReference p);
 
     int cmd_btle_promisc(Pointer devh);
 
@@ -143,7 +116,7 @@ public interface IUbertoothControl extends Library {
 
     int cmd_btle_set_target(Pointer devh, byte[] mac_address);
 
-    int cmd_set_jam_mode(Pointer devh, boolean mode);
+    int cmd_set_jam_mode(Pointer devh, JamModes mode);
 
     int cmd_ego(Pointer devh, int mode);
 }
