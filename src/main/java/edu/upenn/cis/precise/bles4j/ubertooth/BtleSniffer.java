@@ -1,3 +1,20 @@
+/*
+ * This file is part of Bluetooth Low Energy Sniffer for Java (BLES4J).
+ *
+ *     BLES4J is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     BLES4J is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with BLES4J.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package edu.upenn.cis.precise.bles4j.ubertooth;
 
 import edu.upenn.cis.precise.bles4j.ubertooth.core.IUbertoothInterface.*;
@@ -32,9 +49,9 @@ public class BtleSniffer {
 
     // TODO: expand simple start/stop functions
     public void start() {
+        running.set(true);
         sniffer = new Thread(new Sniffer(packets, running, queueFull, SniffMode.FOLLOW, JamModes.JAM_NONE, 37));
         sniffer.start();
-        running.set(true);
     }
 
     public void stop() {
@@ -49,6 +66,11 @@ public class BtleSniffer {
         }
     }
 
+    public UsbPacketRx pollPacket() {
+        return packets.poll();
+    }
+
+    // Info
     public boolean isRunning() {
         return running.get();
     }
@@ -66,10 +88,12 @@ class Sniffer implements Runnable {
 
     private class PollResult {
         private boolean success;
+        private int error;
         private UsbPacketRx packet;
 
         public PollResult() {
             success = false;
+            error = 0;
             packet = new UsbPacketRx.ByReference();
         }
 
@@ -79,6 +103,14 @@ class Sniffer implements Runnable {
 
         public void setSuccess(boolean success) {
             this.success = success;
+        }
+
+        public int getError() {
+            return error;
+        }
+
+        public void setError(int error) {
+            this.error = error;
         }
 
         public UsbPacketRx getPacket() {
@@ -97,7 +129,6 @@ class Sniffer implements Runnable {
     private BtleSniffer.SniffMode sniffMode;
     private short jamMode;
     private int advIndex;
-    private short channel;
 
     public Sniffer(ConcurrentLinkedDeque<UsbPacketRx> packets, AtomicBoolean running, AtomicBoolean queueFull,
                    BtleSniffer.SniffMode sniffMode, short jamMode, int advIndex) {
@@ -122,6 +153,7 @@ class Sniffer implements Runnable {
 
                 // 3. Start sniffing
                 if (sniffMode == BtleSniffer.SniffMode.FOLLOW) {
+                    short channel = 0;
                     switch (advIndex) {
                         case 37:
                             channel = 2402;
@@ -131,6 +163,7 @@ class Sniffer implements Runnable {
                             break;
                         case 39:
                             channel = 2480;
+                            break;
                         default:
                             throw new UbertoothException(
                                     UbertoothExceptionCode.UBERTOOTH_ERROR_UNKNOWN_ADVERTISING_CHANNEL.getCode());
@@ -142,19 +175,19 @@ class Sniffer implements Runnable {
                 }
 
                 // Now keep monitoring Ubertooth for incoming packets
-                running.set(true);
                 while (!Thread.currentThread().isInterrupted()) {
                     Thread.sleep(BtleSniffer.POLLING_INTERVAL);
                     PollResult result = poll();
                     if (result.isSuccess()) {
                         packets.add(result.getPacket());
-                        // System.out.println(result.getPacket().printData());
                         if (packets.size() == BtleSniffer.MAX_PACKET_STORE) {
                             // Queue is full
                             queueFull.set(true);
                             throw new UbertoothException(
                                     UbertoothExceptionCode.UBERTOOTH_ERROR_UNPROCESSED_PACKET_STACK_OVERFLOW.getCode());
                         }
+                    } else if (result.getError() != 0) {
+                        throw new UbertoothException(result.error);
                     }
                 }
             }
@@ -185,8 +218,12 @@ class Sniffer implements Runnable {
                 result.setSuccess(true);
                 result.setPacket(usbPacketRx);
             }
+        } catch (UbertoothException e) {
+            result.setSuccess(false);
+            result.setError(e.getError());
         } catch (Exception e) {
             result.setSuccess(false);
+            result.setError(Integer.MIN_VALUE);
         }
 
         return result;

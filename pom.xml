@@ -49,6 +49,9 @@
                 <directory>${project.basedir}/src/main/resources</directory>
             </resource>
             <resource>
+                <directory>${project.basedir}/lib/libbtbb</directory>
+            </resource>
+            <resource>
                 <directory>${project.basedir}/lib/pcap</directory>
             </resource>
             <resource>
@@ -71,8 +74,8 @@
     <url>https://github.com/hungnguyenm/BLE-Sniffer</url>
     <licenses>
         <license>
-            <name>The MIT License (MIT)</name>
-            <url>https://opensource.org/licenses/MIT</url>
+            <name>GNU General Public License, Version 3</name>
+            <url>http://www.gnu.org/licenses/gpl-3.0.html</url>
         </license>
     </licenses>
     <organization>
