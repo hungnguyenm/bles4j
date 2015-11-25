@@ -15,10 +15,11 @@
  *     along with BLES4J.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package edu.upenn.cis.precise.bles4j.ubertooth.devices;
+package edu.upenn.cis.precise.bles4j.ubertooth;
 
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
+
 import edu.upenn.cis.precise.bles4j.ubertooth.core.*;
 import edu.upenn.cis.precise.bles4j.ubertooth.core.IUbertoothInterface.*;
 import edu.upenn.cis.precise.bles4j.ubertooth.exception.UbertoothException;
@@ -53,6 +54,7 @@ public class UbertoothOne {
     }
 
     // Device Control
+
     /**
      * Stop current Ubertooth operation
      */
@@ -74,6 +76,7 @@ public class UbertoothOne {
 
     /**
      * Full reset Ubertooth, wait for 5 seconds and attempt to init again.
+     *
      * @throws UbertoothException
      */
     public void resetThenReconnect() throws UbertoothException {
@@ -107,6 +110,7 @@ public class UbertoothOne {
 
     /**
      * Retrieve one packet from Ubertooth USB buffer
+     *
      * @return USB packet data
      * @throws UbertoothException
      */
@@ -127,6 +131,7 @@ public class UbertoothOne {
 
     /**
      * Activate following connection mode
+     *
      * @param num Number of connections to follow
      * @throws UbertoothException
      */
@@ -143,6 +148,7 @@ public class UbertoothOne {
 
     /**
      * Activate promiscuous mode ~ sniff all active connections
+     *
      * @throws UbertoothException
      */
     public void btlePromisc() throws UbertoothException {
@@ -190,8 +196,10 @@ public class UbertoothOne {
     }
 
     // Device set configuration
+
     /**
      * Set Tx LED state
+     *
      * @param state 0-off 1-on
      * @throws UbertoothException
      */
@@ -208,6 +216,7 @@ public class UbertoothOne {
 
     /**
      * Set Rx LED state
+     *
      * @param state 0-off 1-on
      * @throws UbertoothException
      */
@@ -224,6 +233,7 @@ public class UbertoothOne {
 
     /**
      * Set USR LED state
+     *
      * @param state 0-off 1-on
      * @throws UbertoothException
      */
@@ -240,6 +250,7 @@ public class UbertoothOne {
 
     /**
      * Set Modulation mode
+     *
      * @param mod 0-Bluetooth Basic Rate 1-Bluetooth LE 2-80211 FHSS
      * @throws UbertoothException
      */
@@ -278,6 +289,7 @@ public class UbertoothOne {
 
     /**
      * Set Jam mode
+     *
      * @param mode 0-None 1-Once 2-Continuous
      * @throws UbertoothException
      */

@@ -15,7 +15,7 @@
  *     along with BLES4J.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package edu.upenn.cis.precise.bles4j.ubertooth.devices;
+package edu.upenn.cis.precise.bles4j.ubertooth;
 
 import edu.upenn.cis.precise.bles4j.ubertooth.exception.UbertoothException;
 

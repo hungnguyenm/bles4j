@@ -17,9 +17,9 @@
 
 package edu.upenn.cis.precise.bles4j.ubertooth.core;
 
+import com.sun.jna.NativeLong;
 import com.sun.jna.Structure;
 
-import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 
@@ -138,8 +138,11 @@ public interface IUbertoothInterface {
                     "rssi_max", "rssi_min", "rssi_avg", "rssi_count", "reserved", "data");
         }
 
-        public boolean isLePacket() {
-            return pkt_type == UsbPktTypes.LE_PACKET;
+        public boolean hasData() {
+            for (byte i : data) {
+                if (i != 0) return true;
+            }
+            return false;
         }
 
         public String printData() {
@@ -166,8 +169,8 @@ public interface IUbertoothInterface {
         public static class ByValue extends BroadcastAddress implements Structure.ByValue {
         }
 
-        public long address;
-        public long access_code;
+        public NativeLong address;
+        public NativeLong access_code;
 
         @Override
         protected List getFieldOrder() {

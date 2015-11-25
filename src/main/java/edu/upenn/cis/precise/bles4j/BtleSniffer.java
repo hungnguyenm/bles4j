@@ -15,15 +15,15 @@
  *     along with BLES4J.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package edu.upenn.cis.precise.bles4j.ubertooth;
-
-import edu.upenn.cis.precise.bles4j.ubertooth.core.IUbertoothInterface.*;
-import edu.upenn.cis.precise.bles4j.ubertooth.devices.UbertoothOne;
-import edu.upenn.cis.precise.bles4j.ubertooth.exception.UbertoothException;
-import edu.upenn.cis.precise.bles4j.ubertooth.exception.UbertoothExceptionCode;
+package edu.upenn.cis.precise.bles4j;
 
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import edu.upenn.cis.precise.bles4j.ubertooth.UbertoothOne;
+import edu.upenn.cis.precise.bles4j.ubertooth.core.IUbertoothInterface.*;
+import edu.upenn.cis.precise.bles4j.ubertooth.exception.UbertoothException;
+import edu.upenn.cis.precise.bles4j.ubertooth.exception.UbertoothExceptionCode;
 
 /**
  * @author Hung Nguyen (hungng@seas.upenn.edu)
@@ -214,7 +214,7 @@ class Sniffer implements Runnable {
 
         try {
             UsbPacketRx.ByReference usbPacketRx = ubertoothOne.poll();
-            if (usbPacketRx.isLePacket()) {
+            if (usbPacketRx.hasData()) {
                 result.setSuccess(true);
                 result.setPacket(usbPacketRx);
             }

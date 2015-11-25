@@ -17,7 +17,7 @@
 
 package edu.upenn.cis.precise.bles4j.develop;
 
-import edu.upenn.cis.precise.bles4j.ubertooth.BtleSniffer;
+import edu.upenn.cis.precise.bles4j.BtleSniffer;
 import edu.upenn.cis.precise.bles4j.ubertooth.core.IUbertoothInterface.*;
 import edu.upenn.cis.precise.bles4j.ubertooth.exception.UbertoothException;
 
