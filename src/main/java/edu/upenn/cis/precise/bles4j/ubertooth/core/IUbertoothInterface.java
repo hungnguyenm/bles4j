@@ -2,6 +2,7 @@ package edu.upenn.cis.precise.bles4j.ubertooth.core;
 
 import com.sun.jna.Structure;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 
@@ -119,6 +120,26 @@ public interface IUbertoothInterface {
             return Arrays.asList("pkt_type", "status", "channel", "clkn_high", "clk100ns",
                     "rssi_max", "rssi_min", "rssi_avg", "rssi_count", "reserved", "data");
         }
+
+        public boolean isLePacket() {
+            return pkt_type == UsbPktTypes.LE_PACKET;
+        }
+
+        public String printData() {
+            return bytesToHex(data);
+        }
+
+        private static String bytesToHex(byte[] bytes) {
+            char[] hexArray = "0123456789ABCDEF ".toCharArray();
+            char[] hexChars = new char[bytes.length * 3];
+            for (int j = 0; j < bytes.length; j++) {
+                int v = bytes[j] & 0xFF;
+                hexChars[j * 3] = hexArray[v >>> 4];
+                hexChars[j * 3 + 1] = hexArray[v & 0x0F];
+                hexChars[j * 3 + 2] = hexArray[16];
+            }
+            return new String(hexChars);
+        }
     }
 
     class BroadcastAddress extends Structure {
@@ -153,6 +174,10 @@ public interface IUbertoothInterface {
         @Override
         protected List getFieldOrder() {
             return Arrays.asList("valid", "request_pa", "request_num", "reply_pa", "reply_num");
+        }
+
+        public int length() {
+            return 64;
         }
     }
 }

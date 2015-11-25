@@ -40,7 +40,14 @@ public class UbertoothOne {
         }
     }
 
-    public void reset() throws UbertoothException {
+    public void reset() {
+        if (connected) {
+            connected = false;
+            ubertoothControl.cmd_reset(device);
+        }
+    }
+
+    public void resetThenReconnect() throws UbertoothException {
         // Reset if device is connected
         if (connected) {
             try {

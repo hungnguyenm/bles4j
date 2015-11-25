@@ -43,7 +43,7 @@ public class DeviceSelfTest {
         // Clean
         System.out.println("Clean-up and reset...");
         ubertoothOne.cleanUp();
-        ubertoothOne.reset();
+        ubertoothOne.resetThenReconnect();
 
         // Done
         System.out.println("Test completed!");
