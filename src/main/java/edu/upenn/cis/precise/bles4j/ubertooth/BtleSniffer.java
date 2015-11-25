@@ -6,32 +6,35 @@ import edu.upenn.cis.precise.bles4j.ubertooth.exception.UbertoothException;
 import edu.upenn.cis.precise.bles4j.ubertooth.exception.UbertoothExceptionCode;
 
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author Hung Nguyen (hungng@seas.upenn.edu)
  */
 public class BtleSniffer {
-    public static int MAX_PACKET_STORE = 100000;
-    public static int POLLING_INTERVAL = 100;
+    public static int MAX_PACKET_STORE = 1000;        // Maximum number of unprocessed packets stored in queue
+    public static int POLLING_INTERVAL = 50;           // Periodic time to check Ubertooth packet buffer
 
     public enum SniffMode {
         FOLLOW, PROMISCUOUS
     }
 
     private ConcurrentLinkedDeque<UsbPacketRx> packets;
+    private AtomicBoolean queueFull;
+    private AtomicBoolean running;
     private Thread sniffer;
-    private boolean running;
 
     public BtleSniffer() {
         packets = new ConcurrentLinkedDeque<UsbPacketRx>();
-        running = false;
+        running = new AtomicBoolean(false);
+        queueFull = new AtomicBoolean(false);
     }
 
     // TODO: expand simple start/stop functions
     public void start() {
-        sniffer = new Thread(new Sniffer(packets, SniffMode.FOLLOW, JamModes.JAM_NONE, 37));
+        sniffer = new Thread(new Sniffer(packets, running, queueFull, SniffMode.FOLLOW, JamModes.JAM_NONE, 37));
         sniffer.start();
-        running = true;
+        running.set(true);
     }
 
     public void stop() {
@@ -39,19 +42,26 @@ public class BtleSniffer {
             try {
                 sniffer.interrupt();
                 sniffer.join();
-                running = false;
             } catch (InterruptedException e) {
                 // Interrupted, consider sniffer is stopped anyway
-                running = false;
+                running.set(false);
             }
         }
     }
 
     public boolean isRunning() {
-        return running;
+        return running.get();
+    }
+
+    public boolean isQueueFull() {
+        return queueFull.get();
     }
 }
 
+/**
+ * Thread to directly initiate Ubertooth to sniff mode and keep polling available packets
+ * to update in main thread.
+ */
 class Sniffer implements Runnable {
 
     private class PollResult {
@@ -81,15 +91,19 @@ class Sniffer implements Runnable {
     }
 
     private ConcurrentLinkedDeque<UsbPacketRx> packets;
+    private AtomicBoolean queueFull;
+    private AtomicBoolean running;
     private UbertoothOne ubertoothOne;
     private BtleSniffer.SniffMode sniffMode;
     private short jamMode;
     private int advIndex;
     private short channel;
 
-    public Sniffer(ConcurrentLinkedDeque<UsbPacketRx> packets,
+    public Sniffer(ConcurrentLinkedDeque<UsbPacketRx> packets, AtomicBoolean running, AtomicBoolean queueFull,
                    BtleSniffer.SniffMode sniffMode, short jamMode, int advIndex) {
         this.packets = packets;
+        this.running = running;
+        this.queueFull = queueFull;
         this.sniffMode = sniffMode;
         this.jamMode = jamMode;
         this.advIndex = advIndex;
@@ -128,17 +142,24 @@ class Sniffer implements Runnable {
                 }
 
                 // Now keep monitoring Ubertooth for incoming packets
+                running.set(true);
                 while (!Thread.currentThread().isInterrupted()) {
                     Thread.sleep(BtleSniffer.POLLING_INTERVAL);
                     PollResult result = poll();
                     if (result.isSuccess()) {
                         packets.add(result.getPacket());
-                        System.out.println(result.getPacket().printData());
+                        // System.out.println(result.getPacket().printData());
+                        if (packets.size() == BtleSniffer.MAX_PACKET_STORE) {
+                            // Queue is full
+                            queueFull.set(true);
+                            throw new UbertoothException(
+                                    UbertoothExceptionCode.UBERTOOTH_ERROR_UNPROCESSED_PACKET_STACK_OVERFLOW.getCode());
+                        }
                     }
                 }
             }
         } catch (UbertoothException e) {
-            System.out.println("SNIFFER ERROR: " + e.getMessage());
+            System.err.println("SNIFFER ERROR: " + e.getMessage());
             exit();
         } catch (InterruptedException e) {
             exit();
@@ -146,12 +167,12 @@ class Sniffer implements Runnable {
     }
 
     private void exit() {
+        running.set(false);
         if (ubertoothOne != null) {
             if (ubertoothOne.isPingable()) {
                 ubertoothOne.stop();
                 ubertoothOne.reset();
             }
-
         }
     }
 

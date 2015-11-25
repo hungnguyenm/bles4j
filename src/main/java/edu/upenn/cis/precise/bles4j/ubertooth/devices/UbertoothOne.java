@@ -20,11 +20,13 @@ public class UbertoothOne {
     Pointer device;
 
     public UbertoothOne() throws UbertoothException {
+        // Load dynamic library via JNA
         ubertooth = (IUbertooth) Native.loadLibrary("ubertooth", IUbertooth.class);
         ubertoothControl = (IUbertoothControl) Native.loadLibrary("ubertooth",
                 IUbertoothControl.class);
         initialized = true;
 
+        // Attempt to initialize Ubertooth
         device = ubertooth.ubertooth_start(-1);
         if (device != null) {
             connected = true;
@@ -34,12 +36,18 @@ public class UbertoothOne {
     }
 
     // Device Control
+    /**
+     * Stop current Ubertooth operation
+     */
     public void stop() {
         if (connected) {
             ubertoothControl.cmd_stop(device);
         }
     }
 
+    /**
+     * Full reset Ubertooth
+     */
     public void reset() {
         if (connected) {
             connected = false;
@@ -47,6 +55,10 @@ public class UbertoothOne {
         }
     }
 
+    /**
+     * Full reset Ubertooth, wait for 5 seconds and attempt to init again.
+     * @throws UbertoothException
+     */
     public void resetThenReconnect() throws UbertoothException {
         // Reset if device is connected
         if (connected) {
@@ -67,12 +79,20 @@ public class UbertoothOne {
         }
     }
 
+    /**
+     * Clear all Ubertooth registers to default values
+     */
     public void cleanUp() {
         if (connected) {
             ubertooth.register_cleanup_handler(device);
         }
     }
 
+    /**
+     * Poll Ubertooth USB buffer for data
+     * @return USB buffer data
+     * @throws UbertoothException
+     */
     public UsbPacketRx.ByReference poll() throws UbertoothException {
         UsbPacketRx.ByReference p = new UsbPacketRx.ByReference();
         if (connected) {
@@ -87,6 +107,12 @@ public class UbertoothOne {
         }
     }
 
+
+    /**
+     * Activate following connection mode
+     * @param num Number of connections to follow
+     * @throws UbertoothException
+     */
     public void btleSniffing(short num) throws UbertoothException {
         if (connected) {
             int r = ubertoothControl.cmd_btle_sniffing(device, num);
@@ -98,6 +124,10 @@ public class UbertoothOne {
         }
     }
 
+    /**
+     * Activate promiscuous mode ~ sniff all active connections
+     * @throws UbertoothException
+     */
     public void btlePromisc() throws UbertoothException {
         if (connected) {
             int r = ubertoothControl.cmd_btle_promisc(device);
@@ -143,6 +173,11 @@ public class UbertoothOne {
     }
 
     // Device set configuration
+    /**
+     * Set Tx LED state
+     * @param state 0-off 1-on
+     * @throws UbertoothException
+     */
     public void setTxLed(short state) throws UbertoothException {
         if (connected) {
             int r = ubertoothControl.cmd_set_txled(device, state);
@@ -154,6 +189,11 @@ public class UbertoothOne {
         }
     }
 
+    /**
+     * Set Rx LED state
+     * @param state 0-off 1-on
+     * @throws UbertoothException
+     */
     public void setRxLed(short state) throws UbertoothException {
         if (connected) {
             int r = ubertoothControl.cmd_set_rxled(device, state);
@@ -165,6 +205,11 @@ public class UbertoothOne {
         }
     }
 
+    /**
+     * Set USR LED state
+     * @param state 0-off 1-on
+     * @throws UbertoothException
+     */
     public void setUsrLed(short state) throws UbertoothException {
         if (connected) {
             int r = ubertoothControl.cmd_set_usrled(device, state);
@@ -176,6 +221,11 @@ public class UbertoothOne {
         }
     }
 
+    /**
+     * Set Modulation mode
+     * @param mod 0-Bluetooth Basic Rate 1-Bluetooth LE 2-80211 FHSS
+     * @throws UbertoothException
+     */
     public void setModulation(short mod) throws UbertoothException {
         if (connected) {
             int r = ubertoothControl.cmd_set_modulation(device, mod);
@@ -209,6 +259,11 @@ public class UbertoothOne {
         }
     }
 
+    /**
+     * Set Jam mode
+     * @param mode 0-None 1-Once 2-Continuous
+     * @throws UbertoothException
+     */
     public void setJamMode(short mode) throws UbertoothException {
         if (connected) {
             int r = ubertoothControl.cmd_set_jam_mode(device, mode);
