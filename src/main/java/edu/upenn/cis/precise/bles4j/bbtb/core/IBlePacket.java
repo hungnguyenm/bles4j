@@ -87,6 +87,46 @@ public interface IBlePacket extends Library {
     //endregion
 
     //region Main functions
-    
+    /**
+     * Decode stream data to LE Packet
+     * @param stream Stream data in bytes
+     * @param phys_channel Physical channel
+     * @param clk100ns Clock
+     * @param pkt Decoded LE Packet
+     */
+    void left_allocate_and_decode(byte[] stream, short phys_channel, int clk100ns, LellPacket.ByReference pkt);
+
+    int lell_packet_is_data(LellPacket.ByReference pkt);
+
+    int lell_get_access_address(LellPacket.ByReference pkt);
+
+    int lell_get_access_address_offenses(LellPacket.ByReference pkt);
+
+    int lell_get_channel_index(LellPacket.ByReference pkt);
+
+    int lell_get_channel_k(LellPacket.ByReference pkt);
+    //endregion
+
+    //region Helper functions
+    /**
+     * Helper function for filtering bogus packets on data channels based on
+     * Access Address statistics
+     * @param aa Access Address
+     * @return ?
+     */
+    int aa_data_channel_offenses(int aa);
+
+    /**
+     * Map channel index from physical channel
+     * @param phys_channel Physical channel
+     * @return Channel index
+     */
+    byte le_channel_index(short phys_channel);
+
+    /**
+     * Console output packet details
+     * @param pkt LE Packet
+     */
+    void lell_print(LellPacket.ByReference pkt);
     //endregion
 }
