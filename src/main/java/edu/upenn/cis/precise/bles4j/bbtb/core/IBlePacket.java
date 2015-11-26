@@ -28,6 +28,7 @@ import java.util.List;
  * @author Hung Nguyen (hungng@seas.upenn.edu)
  */
 public interface IBlePacket extends Library {
+    //region Configuration
     int MAX_LE_SUMBOLS = 64;
     int LE_ADV_AA = 0x8e89bed6;
 
@@ -56,7 +57,7 @@ public interface IBlePacket extends Library {
         byte channel_idx;
         byte channel_k;
 
-        // Number of sumbols
+        // Number of symbols
         int length;
         int clk100ns;
 
@@ -83,4 +84,9 @@ public interface IBlePacket extends Library {
         byte as_bits_access_address_ok;
         int as_word;
     }
+    //endregion
+
+    //region Main functions
+    
+    //endregion
 }

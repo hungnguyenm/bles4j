@@ -53,8 +53,7 @@ public class UbertoothOne {
         }
     }
 
-    // Device Control
-
+    //region Device Control
     /**
      * Stop current Ubertooth operation
      */
@@ -194,9 +193,9 @@ public class UbertoothOne {
             throw new UbertoothException(UbertoothExceptionCode.UBERTOOTH_ERROR_NOT_CONNECTED.getCode());
         }
     }
+    //endregion
 
-    // Device set configuration
-
+    //region Set configuration
     /**
      * Set Tx LED state
      *
@@ -369,11 +368,13 @@ public class UbertoothOne {
             throw new UbertoothException(UbertoothExceptionCode.UBERTOOTH_ERROR_NOT_CONNECTED.getCode());
         }
     }
+    //endregion
 
-    // Device get configuration
+    //region Get configuration
     // TODO: Implement get functions
+    //endregion
 
-    // Ubertooth Utilities
+    //region Ubertooth utilities
     public boolean isConnected() {
         return connected;
     }
@@ -471,8 +472,9 @@ public class UbertoothOne {
             throw new UbertoothException(UbertoothExceptionCode.UBERTOOTH_ERROR_NOT_CONNECTED.getCode());
         }
     }
+    //endregion
 
-    // Debug Info
+    //region Debug Info
     public boolean isInitialized() {
         return initialized;
     }
@@ -506,4 +508,5 @@ public class UbertoothOne {
             throw new UbertoothException(UbertoothExceptionCode.UBERTOOTH_ERROR_NOT_CONNECTED.getCode());
         }
     }
+    //endregion
 }
