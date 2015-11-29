@@ -29,7 +29,7 @@ public class TestBtleSniffer {
         BtleSniffer btleSniffer = new BtleSniffer();
 
         System.out.println("Initializing...");
-        btleSniffer.start();
+        btleSniffer.start(BtleSniffer.WriteMode.STACK);
 
         try {
             while (btleSniffer.isRunning()) {

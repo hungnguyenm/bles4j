@@ -113,6 +113,21 @@ public interface IUbertoothInterface {
         short EGO_PACKET = 6;
     }
 
+    class BtleOptions extends Structure {
+        public static class ByReference extends BtleOptions implements Structure.ByReference {
+        }
+
+        public static class ByValue extends BtleOptions implements Structure.ByValue {
+        }
+
+        public int allowed_access_address_errors;
+
+        @Override
+        protected List getFieldOrder() {
+            return Arrays.asList("allowed_access_address_errors");
+        }
+    }
+
     class UsbPacketRx extends Structure {
         public static class ByReference extends UsbPacketRx implements Structure.ByReference {
         }

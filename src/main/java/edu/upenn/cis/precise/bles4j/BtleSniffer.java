@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import edu.upenn.cis.precise.bles4j.ubertooth.UbertoothOne;
+import edu.upenn.cis.precise.bles4j.ubertooth.core.IUbertoothInterface;
 import edu.upenn.cis.precise.bles4j.ubertooth.core.IUbertoothInterface.*;
 import edu.upenn.cis.precise.bles4j.ubertooth.exception.UbertoothException;
 import edu.upenn.cis.precise.bles4j.ubertooth.exception.UbertoothExceptionCode;
@@ -30,15 +31,24 @@ import edu.upenn.cis.precise.bles4j.ubertooth.exception.UbertoothExceptionCode;
  */
 public class BtleSniffer {
     public static int MAX_PACKET_STORE = 1000;        // Maximum number of unprocessed packets stored in queue
-    public static int POLLING_INTERVAL = 50;           // Periodic time to check Ubertooth packet buffer
+    public static int POLLING_INTERVAL = 50;          // Periodic time to check Ubertooth packet buffer
 
     public enum SniffMode {
         FOLLOW, PROMISCUOUS
     }
 
+    /**
+     * Sniffer write mode:
+     * - STACK: Add raw packet data to shared dequeue variable
+     * - PIPE: Decode to pcap format and write to PCAP pipe file
+     */
+    public enum WriteMode {
+        STACK, PIPE
+    }
+
     private ConcurrentLinkedDeque<UsbPacketRx> packets;
-    private AtomicBoolean queueFull;
-    private AtomicBoolean running;
+    private AtomicBoolean queueFull;        // Thread interrupt hard stop
+    private AtomicBoolean running;          // Thread interlock
     private Thread sniffer;
 
     public BtleSniffer() {
@@ -48,9 +58,10 @@ public class BtleSniffer {
     }
 
     // TODO: expand simple start/stop functions
-    public void start() {
+    public void start(WriteMode writeMode) {
         running.set(true);
-        sniffer = new Thread(new Sniffer(packets, running, queueFull, SniffMode.FOLLOW, JamModes.JAM_NONE, 37));
+        sniffer = new Thread(new Sniffer(packets, running, queueFull, writeMode,
+                SniffMode.FOLLOW, JamModes.JAM_NONE, 37));
         sniffer.start();
     }
 
@@ -69,6 +80,7 @@ public class BtleSniffer {
     public UsbPacketRx pollPacket() {
         return packets.poll();
     }
+
 
     // Info
     public boolean isRunning() {
@@ -126,18 +138,21 @@ class Sniffer implements Runnable {
     private AtomicBoolean queueFull;
     private AtomicBoolean running;
     private UbertoothOne ubertoothOne;
+    private BtleSniffer.WriteMode writeMode;
     private BtleSniffer.SniffMode sniffMode;
     private short jamMode;
     private int advIndex;
+    private IUbertoothInterface.BtleOptions btleOptions;
 
     public Sniffer(ConcurrentLinkedDeque<UsbPacketRx> packets, AtomicBoolean running, AtomicBoolean queueFull,
-                   BtleSniffer.SniffMode sniffMode, short jamMode, int advIndex) {
+                   BtleSniffer.WriteMode writeMode, BtleSniffer.SniffMode sniffMode, short jamMode, int advIndex) {
         this.packets = packets;
         this.running = running;
         this.queueFull = queueFull;
         this.sniffMode = sniffMode;
         this.jamMode = jamMode;
         this.advIndex = advIndex;
+        initializeExport(writeMode);
     }
 
     public void run() {
@@ -179,13 +194,7 @@ class Sniffer implements Runnable {
                     Thread.sleep(BtleSniffer.POLLING_INTERVAL);
                     PollResult result = poll();
                     if (result.isSuccess()) {
-                        packets.add(result.getPacket());
-                        if (packets.size() == BtleSniffer.MAX_PACKET_STORE) {
-                            // Queue is full
-                            queueFull.set(true);
-                            throw new UbertoothException(
-                                    UbertoothExceptionCode.UBERTOOTH_ERROR_UNPROCESSED_PACKET_STACK_OVERFLOW.getCode());
-                        }
+                        export(result.getPacket());
                     } else if (result.getError() != 0) {
                         throw new UbertoothException(result.error);
                     }
@@ -196,6 +205,39 @@ class Sniffer implements Runnable {
             exit();
         } catch (InterruptedException e) {
             exit();
+        }
+    }
+
+    /**
+     * Prepare for writing packets if needed
+     */
+    private void initializeExport(BtleSniffer.WriteMode writeMode) {
+        this.writeMode = writeMode;
+
+        if (writeMode == BtleSniffer.WriteMode.PIPE) {
+            this.btleOptions = new BtleOptions();
+            btleOptions.allowed_access_address_errors = 32;
+        }
+    }
+
+    /**
+     * Write captured packet to target set by Write mode
+     */
+    private void export(UsbPacketRx packet) throws UbertoothException {
+        if (writeMode == BtleSniffer.WriteMode.STACK) {
+            // Add to stack
+            packets.add(packet);
+            if (packets.size() == BtleSniffer.MAX_PACKET_STORE) {
+                // Queue is full
+                queueFull.set(true);
+                throw new UbertoothException(
+                        UbertoothExceptionCode.UBERTOOTH_ERROR_UNPROCESSED_PACKET_STACK_OVERFLOW.getCode());
+            }
+        } else if (writeMode == BtleSniffer.WriteMode.PIPE) {
+            // Decode to pcap format and write to pipe file
+            // TODO: implement pipe
+        } else {
+            throw new UbertoothException(UbertoothExceptionCode.UBERTOOTH_ERROR_EXPORT_NOT_INITIALIZED.getCode());
         }
     }
 
