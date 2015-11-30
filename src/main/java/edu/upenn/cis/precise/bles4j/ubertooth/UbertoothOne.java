@@ -54,6 +54,7 @@ public class UbertoothOne {
     }
 
     //region Device Control
+
     /**
      * Stop current Ubertooth operation
      */
@@ -196,6 +197,7 @@ public class UbertoothOne {
     //endregion
 
     //region Set configuration
+
     /**
      * Set Tx LED state
      *

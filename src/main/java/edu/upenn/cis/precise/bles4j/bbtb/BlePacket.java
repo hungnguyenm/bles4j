@@ -191,7 +191,11 @@ public class BlePacket {
                     "LL_PING_REQ",
                     "LL_PING_RSP",
                     "Reserved for Future Use"};
-            return Opcodes[this.opcode];
+            if (opcode < Opcodes.length && opcode >= 0) {
+                return Opcodes[opcode];
+            } else {
+                return null;
+            }
         } else {
             return null;
         }
@@ -207,7 +211,11 @@ public class BlePacket {
                     "SCAN_RSP",
                     "CONNECT_REQ",
                     "ADV_SCAN_IND"};
-            return types[advertisingType];
+            if (advertisingType < types.length && advertisingType >= 0) {
+                return types[advertisingType];
+            } else {
+                return null;
+            }
         } else {
             return null;
         }
@@ -309,8 +317,7 @@ public class BlePacket {
 
     private static double bytesToDouble(byte[] x) {
         long value = 0;
-        for (int i : x)
-        {
+        for (int i : x) {
             value = (value << 8) + (i & 0xff);
         }
         return value;

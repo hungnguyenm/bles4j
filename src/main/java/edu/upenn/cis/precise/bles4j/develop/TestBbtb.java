@@ -35,7 +35,7 @@ public class TestBbtb {
         System.out.println("Initializing...");
         // Load dynamic library via JNA
         IBtbb btbb = (IBtbb) Native.loadLibrary("btbb", IBtbb.class);
-        btleSniffer.start(BtleSniffer.WriteMode.STACK);
+        btleSniffer.startFollow(BtleSniffer.WriteMode.STACK);
 
         try {
             while (btleSniffer.isRunning()) {

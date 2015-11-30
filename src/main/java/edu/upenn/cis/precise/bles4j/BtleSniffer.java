@@ -58,10 +58,28 @@ public class BtleSniffer {
     }
 
     // TODO: expand simple start/stop functions
-    public void start(WriteMode writeMode) {
+    /**
+     * Initiate Ubertooth in following mode
+     *
+     * @param writeMode Write-back mode from USB buffer
+     */
+    public void startFollow(WriteMode writeMode) {
         running.set(true);
         sniffer = new Thread(new Sniffer(packets, running, queueFull, writeMode,
-                SniffMode.FOLLOW, JamModes.JAM_NONE, 37));
+                SniffMode.FOLLOW, (short)0, JamModes.JAM_NONE, 37));
+        sniffer.start();
+    }
+
+    /**
+     * Initiate Ubertooth in promiscuous mode
+     *
+     * @param writeMode Write-back mode from USB buffer
+     * @param channel   Channel frequency to sniff on
+     */
+    public void startPromiscuous(WriteMode writeMode, short channel) {
+        running.set(true);
+        sniffer = new Thread(new Sniffer(packets, running, queueFull, writeMode,
+                SniffMode.PROMISCUOUS, channel, JamModes.JAM_NONE, 37));
         sniffer.start();
     }
 
@@ -140,16 +158,19 @@ class Sniffer implements Runnable {
     private UbertoothOne ubertoothOne;
     private BtleSniffer.WriteMode writeMode;
     private BtleSniffer.SniffMode sniffMode;
+    private short channel;
     private short jamMode;
     private int advIndex;
     private IUbertoothInterface.BtleOptions btleOptions;
 
     public Sniffer(ConcurrentLinkedDeque<UsbPacketRx> packets, AtomicBoolean running, AtomicBoolean queueFull,
-                   BtleSniffer.WriteMode writeMode, BtleSniffer.SniffMode sniffMode, short jamMode, int advIndex) {
+                   BtleSniffer.WriteMode writeMode, BtleSniffer.SniffMode sniffMode,
+                   short channel, short jamMode, int advIndex) {
         this.packets = packets;
         this.running = running;
         this.queueFull = queueFull;
         this.sniffMode = sniffMode;
+        this.channel = channel;
         this.jamMode = jamMode;
         this.advIndex = advIndex;
         initializeExport(writeMode);
@@ -166,7 +187,12 @@ class Sniffer implements Runnable {
                 // 2. Configure modulation to BTLE
                 ubertoothOne.setModulation(Modulations.MOD_BT_LOW_ENERGY);
 
-                // 3. Start sniffing
+                // 3. If it is promiscuous mode then configure channel and squelch
+                if (sniffMode == BtleSniffer.SniffMode.PROMISCUOUS) {
+                    ubertoothOne.setChannel(channel);
+                }
+
+                // 4. Start sniffing
                 if (sniffMode == BtleSniffer.SniffMode.FOLLOW) {
                     short channel = 0;
                     switch (advIndex) {

@@ -19,13 +19,14 @@ package edu.upenn.cis.precise.bles4j.demo.cis556;
 
 import com.sun.jna.Native;
 
-import com.sun.jna.ptr.DoubleByReference;
 import edu.upenn.cis.precise.bles4j.BtleSniffer;
 import edu.upenn.cis.precise.bles4j.bbtb.BlePacket;
 import edu.upenn.cis.precise.bles4j.bbtb.core.IBtbb;
 import edu.upenn.cis.precise.bles4j.ubertooth.core.IUbertoothInterface;
 import edu.upenn.cis.precise.bles4j.ubertooth.exception.UbertoothException;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -33,25 +34,51 @@ import java.util.Calendar;
 /**
  * @author Hung Nguyen (hungng@seas.upenn.edu)
  */
-public class RunInFollowMode {
+public class RunInFollowMode implements Runnable {
+    static BufferedReader keyin;
+    static int quit = 0;
+
+    public void run() {
+        // Key-pressed interrupt
+        String msg = null;
+        while (true) {
+            try {
+                msg = keyin.readLine();
+            } catch (Exception e) {
+                System.err.println("ERROR in keyboard monitor thread: " + e.getMessage());
+            }
+
+            if (msg.equals("q")) {
+                quit = 1;
+                break;
+            }
+        }
+    }
+
     public static void main(String[] args) throws UbertoothException {
+        keyin = new BufferedReader(new InputStreamReader(System.in));
         BtleSniffer btleSniffer = new BtleSniffer();
         boolean isFollowing = false;
-        byte[] targetAddressMask = {(byte)0x00, (byte)0x22, (byte)0xd0};        // Polar H7 manufacturer mask
+        byte[] targetAddressMask = {(byte) 0x00, (byte) 0x22, (byte) 0xd0};     // Polar H7 manufacturer mask
         // byte[] targetAddressMask = {(byte)0xc0, (byte)0x4b, (byte)0x72};     // Fitbit manufacturer mask
-        byte[] targetGATTdata = {(byte)0x04, (byte)0x00, (byte)0x1b, (byte)0x12, (byte)0x00};
-        String targetGattString = new String(targetGATTdata);
+        byte[] targetGattData = {(byte) 0x04, (byte) 0x00, (byte) 0x1b};        // GATT Attribute Protocol with Opcode
+        String targetGattString = new String(targetGattData);
 
         System.out.println("==== BLES4J DEMO WITH POLAR H7 SENSOR ====");
         System.out.println("Configurations:");
         System.out.println(" - Filtered to target Polar devices (00:22:D0:xx:xx:xx)");
-        System.out.println(" - Following mode: expect connect_req packet from master device\n");
+        System.out.println(" - Following mode: expect connect_req packet from master device");
+        System.out.println(" - Press q then Enter to exit\n");
         // Load dynamic library via JNA
         System.out.println("Initializing...");
         IBtbb btbb = (IBtbb) Native.loadLibrary("btbb", IBtbb.class);
         // Start sniffing
         System.out.println("Start sniffing...");
-        btleSniffer.start(BtleSniffer.WriteMode.STACK);
+        btleSniffer.startFollow(BtleSniffer.WriteMode.STACK);
+
+        // Setup interrupt
+        Thread keyPressedMonitor = new Thread(new RunInFollowMode());
+        keyPressedMonitor.start();
 
         try {
             while (btleSniffer.isRunning()) {
@@ -63,7 +90,7 @@ public class RunInFollowMode {
                             switch (blePacket.advertisingType) {
                                 case BlePacket.AdvertisingTypes.ADV_IND:
                                     System.out.print("\r" + printTime() + " -- Advertising packet found from " +
-                                    blePacket.printAdvertisingAddress() + " on channel " + blePacket.printChannelIndex());
+                                            blePacket.printAdvertisingAddress() + "on channel " + blePacket.printChannelIndex());
                                     break;
                                 case BlePacket.AdvertisingTypes.CONNECT_REQ:
                                     if (Arrays.equals(targetAddressMask,
@@ -88,17 +115,33 @@ public class RunInFollowMode {
                             // System.out.println(blePacket.toString());
                             String data = new String(blePacket.data);
                             int index = data.indexOf(targetGattString);
-                            if (index >= 0) {
-                                // HR data found
-                                index += 6;
-                                System.out.println(printTime() +
-                                        "Channel: " + Integer.toString(blePacket.channelIndex) +
-                                        " -- HR: " + Integer.toString(blePacket.data[index]) + " bpm " + "" +
-                                        "-- RR interval: " +
-                                        bytesToString(new byte[]{blePacket.data[index + 2], blePacket.data[index + 1]}));
+                            if (index >= 0 && blePacket.dataLength >= index + 6) {
+                                // Attribute protocol - Handle value notification packet
+                                index += 5;
+                                int flag = blePacket.data[index];
+                                switch (flag) {
+                                    case 0x16:
+                                        System.out.println(printTime() +
+                                                " -- Channel: " + Integer.toString(blePacket.channelIndex) +
+                                                " -- HR: " + Integer.toString(blePacket.data[index + 1]) + " bpm " +
+                                                "-- RR interval: " +
+                                                bytesToString(new byte[]{blePacket.data[index + 3], blePacket.data[index + 2]}) +
+                                                "ms");
+                                        break;
+                                    case 0x06:
+                                        System.out.println(printTime() +
+                                                " -- Channel: " + Integer.toString(blePacket.channelIndex) +
+                                                " -- HR: " + Integer.toString(blePacket.data[index + 1]) + " bpm");
+                                        break;
+                                }
                             }
                         }
                     }
+                }
+
+                // Handle quit interruption
+                if (quit == 1) {
+                    btleSniffer.stop();
                 }
                 Thread.sleep(10);
             }
@@ -115,8 +158,7 @@ public class RunInFollowMode {
 
     private static String bytesToString(byte[] x) {
         long value = 0;
-        for (int i : x)
-        {
+        for (int i : x) {
             value = (value << 8) + (i & 0xff);
         }
         return Long.toString(value);
