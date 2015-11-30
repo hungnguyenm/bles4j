@@ -18,8 +18,10 @@
 package edu.upenn.cis.precise.bles4j.bbtb.core;
 
 import com.sun.jna.Library;
+import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
 import com.sun.jna.Union;
+import com.sun.jna.ptr.PointerByReference;
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,20 +29,10 @@ import java.util.List;
 /**
  * @author Hung Nguyen (hungng@seas.upenn.edu)
  */
-public interface IBlePacket extends Library {
+public interface IBtbb extends Library {
     //region Configuration
-    int MAX_LE_SUMBOLS = 64;
+    int MAX_LE_SYMBOLS = 64;
     int LE_ADV_AA = 0x8e89bed6;
-
-    interface PacketTypes {
-        short ADV_IND = 0;
-        short ADV_DIRECT_IND = 1;
-        short ADV_NONCONN_IND = 2;
-        short SCAN_REQ = 3;
-        short SCAN_RSP = 4;
-        short CONNECT_REQ = 5;
-        short ADV_SCAN_IND = 6;
-    }
 
     class LellPacket extends Structure {
         public static class ByReference extends LellPacket implements Structure.ByReference {
@@ -50,27 +42,36 @@ public interface IBlePacket extends Library {
         }
 
         // Raw un-whitened bytes of packet including access address
-        byte[] symbols;
-        int access_address;
+        public byte[] symbols = new byte[MAX_LE_SYMBOLS];
+        public int access_address;
 
         // Channel index
-        byte channel_idx;
-        byte channel_k;
+        public byte channel_idx;
+        public byte channel_k;
 
         // Number of symbols
-        int length;
-        int clk100ns;
+        public int length;
+        public int clk100ns;
 
         // Advertising packet header info
-        byte adv_type;
-        int adv_tx_add;
-        int adv_rx_add;
+        public byte adv_type;
+        public int adv_tx_add;
+        public int adv_rx_add;
 
-        int access_address_offenses;
-        int refcount;
+        public int access_address_offenses;
+        public int refcount;
 
         // Flags
-        Flag flags;
+        public Flag flags;
+
+        public LellPacket() {
+            super();
+        }
+
+        public LellPacket(Pointer p) {
+            super(p);
+            read();
+        }
 
         @Override
         protected List getFieldOrder() {
@@ -81,8 +82,8 @@ public interface IBlePacket extends Library {
     }
 
     class Flag extends Union {
-        byte as_bits_access_address_ok;
-        int as_word;
+        public byte as_bits_access_address_ok;
+        public int as_word;
     }
     //endregion
 
@@ -94,17 +95,17 @@ public interface IBlePacket extends Library {
      * @param clk100ns Clock
      * @param pkt Decoded LE Packet
      */
-    void left_allocate_and_decode(byte[] stream, short phys_channel, int clk100ns, LellPacket.ByReference pkt);
+    void lell_allocate_and_decode(byte[] stream, short phys_channel, int clk100ns, PointerByReference pkt);
 
-    int lell_packet_is_data(LellPacket.ByReference pkt);
+    int lell_packet_is_data(PointerByReference pkt);
 
-    int lell_get_access_address(LellPacket.ByReference pkt);
+    int lell_get_access_address(PointerByReference pkt);
 
-    int lell_get_access_address_offenses(LellPacket.ByReference pkt);
+    int lell_get_access_address_offenses(PointerByReference pkt);
 
-    int lell_get_channel_index(LellPacket.ByReference pkt);
+    int lell_get_channel_index(PointerByReference pkt);
 
-    int lell_get_channel_k(LellPacket.ByReference pkt);
+    int lell_get_channel_k(PointerByReference pkt);
     //endregion
 
     //region Helper functions
@@ -127,6 +128,6 @@ public interface IBlePacket extends Library {
      * Console output packet details
      * @param pkt LE Packet
      */
-    void lell_print(LellPacket.ByReference pkt);
+    void lell_print(PointerByReference pkt);
     //endregion
 }
