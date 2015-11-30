@@ -31,7 +31,7 @@ import edu.upenn.cis.precise.bles4j.ubertooth.exception.UbertoothExceptionCode;
  */
 public class BtleSniffer {
     public static int MAX_PACKET_STORE = 1000;        // Maximum number of unprocessed packets stored in queue
-    public static int POLLING_INTERVAL = 50;          // Periodic time to check Ubertooth packet buffer
+    public static int POLLING_INTERVAL = 10;          // Periodic time to check Ubertooth packet buffer
 
     public enum SniffMode {
         FOLLOW, PROMISCUOUS

@@ -26,14 +26,14 @@ import edu.upenn.cis.precise.bles4j.ubertooth.core.IUbertoothInterface;
  * @author Hung Nguyen (hungng@seas.upenn.edu)
  */
 public class BlePacket {
-    interface LlidTypes {
+    public interface LlidTypes {
         int RESERVED = 0;
         int LL_DATA_PDU_EMPTY_OR_L2CAP_CONTINUATION = 1;
         int LL_DATA_PDU_L2CAP_START = 2;
         int LL_CONTROL_PDU = 3;
     }
 
-    interface Opcodes {
+    public interface Opcodes {
         int LL_CONNECTION_UPDATE_REQ = 0;
         int LL_CHANNELL_MAP_REQ = 1;
         int LL_TERMINATE_IND = 2;
@@ -57,7 +57,7 @@ public class BlePacket {
         int RESERVED = 20;
     }
 
-    interface AdvertisingTypes {
+    public interface AdvertisingTypes {
         short ADV_IND = 0;
         short ADV_DIRECT_IND = 1;
         short ADV_NONCONN_IND = 2;
@@ -213,6 +213,42 @@ public class BlePacket {
         }
     }
 
+    public String printChannelIndex() {
+        return Integer.toString(channelIndex);
+    }
+
+    public String printAdvertisingAddress() {
+        return bytesToHex(advertisingAddress);
+    }
+
+    public String printInitiatingAddress() {
+        return bytesToHex(initiatingAddress);
+    }
+
+    public String printNewAccessAddress() {
+        return bytesToHex(newAccessAddress);
+    }
+
+    public String printCRCInit() {
+        return bytesToHex(CRCInit);
+    }
+
+    public String printInterval() {
+        return Double.toString(bytesToDouble(interval) * 1.25) + "ms";
+    }
+
+    public String printLatency() {
+        return bytesToHex(latency);
+    }
+
+    public String printHop() {
+        return Integer.toString(hop);
+    }
+
+    public String printTimeout() {
+        return bytesToHex(timeout);
+    }
+
     private byte[] getBytesFromStream(byte[] stream, int offset, int length) {
         byte[] addr = new byte[length];
         for (int i = 0; i < length; i++) {
@@ -269,5 +305,14 @@ public class BlePacket {
 
     private static String getUnsignedString(int x) {
         return Long.toHexString(x & 0x00000000ffffffffL);
+    }
+
+    private static double bytesToDouble(byte[] x) {
+        long value = 0;
+        for (int i : x)
+        {
+            value = (value << 8) + (i & 0xff);
+        }
+        return value;
     }
 }
