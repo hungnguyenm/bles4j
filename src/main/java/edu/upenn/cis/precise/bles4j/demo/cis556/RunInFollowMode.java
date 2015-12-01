@@ -27,9 +27,7 @@ import edu.upenn.cis.precise.bles4j.ubertooth.exception.UbertoothException;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Calendar;
 
 /**
  * @author Hung Nguyen (hungng@seas.upenn.edu)
@@ -61,8 +59,6 @@ public class RunInFollowMode implements Runnable {
         boolean isFollowing = false;
         byte[] targetAddressMask = {(byte) 0x00, (byte) 0x22, (byte) 0xd0};     // Polar H7 manufacturer mask
         // byte[] targetAddressMask = {(byte)0xc0, (byte)0x4b, (byte)0x72};     // Fitbit manufacturer mask
-        byte[] targetGattData = {(byte) 0x04, (byte) 0x00, (byte) 0x1b};        // GATT Attribute Protocol with Opcode
-        String targetGattString = new String(targetGattData);
 
         System.out.println("==== BLES4J DEMO WITH POLAR H7 SENSOR ====");
         System.out.println("Configurations:");
@@ -89,13 +85,13 @@ public class RunInFollowMode implements Runnable {
                         if (!blePacket.isDataPacket) {
                             switch (blePacket.advertisingType) {
                                 case BlePacket.AdvertisingTypes.ADV_IND:
-                                    System.out.print("\r" + printTime() + " -- Advertising packet found from " +
+                                    System.out.print("\r" + Helper.printTime() + " -- Advertising packet found from " +
                                             blePacket.printAdvertisingAddress() + "on channel " + blePacket.printChannelIndex());
                                     break;
                                 case BlePacket.AdvertisingTypes.CONNECT_REQ:
                                     if (Arrays.equals(targetAddressMask,
                                             Arrays.copyOfRange(blePacket.advertisingAddress, 0, 3))) {
-                                        System.out.println("\r" + printTime() + " -- Connection Request packet found:");
+                                        System.out.println("\r" + Helper.printTime() + " -- Connection Request packet found:");
                                         System.out.println(" + Initiator Address: " + blePacket.printInitiatingAddress());
                                         System.out.println(" + Advertising Address: " + blePacket.printAdvertisingAddress());
                                         System.out.println(" + Access Address: " + blePacket.printNewAccessAddress());
@@ -111,31 +107,7 @@ public class RunInFollowMode implements Runnable {
                             }
                         }
                     } else {
-                        if (blePacket.isDataPacket && blePacket.dataLength > 0) {
-                            // System.out.println(blePacket.toString());
-                            String data = new String(blePacket.data);
-                            int index = data.indexOf(targetGattString);
-                            if (index >= 0 && blePacket.dataLength >= index + 6) {
-                                // Attribute protocol - Handle value notification packet
-                                index += 5;
-                                int flag = blePacket.data[index];
-                                switch (flag) {
-                                    case 0x16:
-                                        System.out.println(printTime() +
-                                                " -- Channel: " + Integer.toString(blePacket.channelIndex) +
-                                                " -- HR: " + Integer.toString(blePacket.data[index + 1]) + " bpm " +
-                                                "-- RR interval: " +
-                                                bytesToString(new byte[]{blePacket.data[index + 3], blePacket.data[index + 2]}) +
-                                                "ms");
-                                        break;
-                                    case 0x06:
-                                        System.out.println(printTime() +
-                                                " -- Channel: " + Integer.toString(blePacket.channelIndex) +
-                                                " -- HR: " + Integer.toString(blePacket.data[index + 1]) + " bpm");
-                                        break;
-                                }
-                            }
-                        }
+                        Helper.printHrData(blePacket);
                     }
                 }
 
@@ -150,17 +122,5 @@ public class RunInFollowMode implements Runnable {
         }
 
         System.out.println("Sniffer stopped! Exiting...");
-    }
-
-    private static String printTime() {
-        return new SimpleDateFormat("HH:mm:ss").format(Calendar.getInstance().getTime());
-    }
-
-    private static String bytesToString(byte[] x) {
-        long value = 0;
-        for (int i : x) {
-            value = (value << 8) + (i & 0xff);
-        }
-        return Long.toString(value);
     }
 }

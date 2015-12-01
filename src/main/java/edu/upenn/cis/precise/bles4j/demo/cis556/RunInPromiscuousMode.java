@@ -26,9 +26,6 @@ import edu.upenn.cis.precise.bles4j.ubertooth.exception.UbertoothException;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Calendar;
 
 /**
  * @author Hung Nguyen (hungng@seas.upenn.edu)
@@ -60,8 +57,6 @@ public class RunInPromiscuousMode implements Runnable {
         boolean isFollowing = false;
         byte[] targetAddressMask = {(byte) 0x00, (byte) 0x22, (byte) 0xd0};     // Polar H7 manufacturer mask
         // byte[] targetAddressMask = {(byte)0xc0, (byte)0x4b, (byte)0x72};     // Fitbit manufacturer mask
-        byte[] targetGattData = {(byte) 0x04, (byte) 0x00, (byte) 0x1b, (byte) 0x12, (byte) 0x00};
-        String targetGattString = new String(targetGattData);
         short channel = 2404;
 
         System.out.println("==== BLES4J DEMO WITH POLAR H7 SENSOR ====");
@@ -107,17 +102,5 @@ public class RunInPromiscuousMode implements Runnable {
         }
 
         System.out.println("Sniffer stopped! Exiting...");
-    }
-
-    private static String printTime() {
-        return new SimpleDateFormat("HH:mm:ss").format(Calendar.getInstance().getTime());
-    }
-
-    private static String bytesToString(byte[] x) {
-        long value = 0;
-        for (int i : x) {
-            value = (value << 8) + (i & 0xff);
-        }
-        return Long.toString(value);
     }
 }
