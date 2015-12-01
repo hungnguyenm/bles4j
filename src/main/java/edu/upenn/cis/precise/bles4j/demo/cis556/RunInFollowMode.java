@@ -69,8 +69,8 @@ public class RunInFollowMode implements Runnable {
         System.out.println("Initializing...");
         IBtbb btbb = (IBtbb) Native.loadLibrary("btbb", IBtbb.class);
         // Start sniffing
-        System.out.println("Start sniffing...");
         btleSniffer.startFollow(BtleSniffer.WriteMode.STACK);
+        System.out.println("Start sniffing...");
 
         // Setup interrupt
         Thread keyPressedMonitor = new Thread(new RunInFollowMode());

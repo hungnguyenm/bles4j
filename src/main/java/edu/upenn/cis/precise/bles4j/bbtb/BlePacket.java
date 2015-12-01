@@ -67,11 +67,28 @@ public class BlePacket {
         short ADV_SCAN_IND = 6;
     }
 
+    public interface PromiscuousStates {
+        int ACCESS_ADDRESS = 0;
+        int CRC_INIT = 1;
+        int HOP_INTERVAL = 2;
+        int HOP_INCREMENT = 3;
+        int UNKNOWN = -1;
+    }
+
+    public byte packetType;
     public int accessAddress;
     public boolean isAccessAddressValid;
     public int dataLength;
     public int channelIndex;
     public int channelFrequency;
+    public int promiscuousState;
+    // Below fields are only populated one out of all if promiscuousState is not UNKNOWN
+    public int promAccessAddress;
+    public byte[] promCRCInit;
+    public double promInterval;
+    public int promIncrement;
+    public byte[] promData;
+
     public boolean isDataPacket;
     // Below fields are only populated if isDataPacket is true
     public int opcode;
@@ -111,12 +128,45 @@ public class BlePacket {
         IBtbb.LellPacket parsedPacket = new IBtbb.LellPacket(parsedPointer.getValue());
 
         // Start mapping
+        this.packetType = usbPacketRx.pkt_type;
         this.accessAddress = parsedPacket.access_address;
         this.isAccessAddressValid = parsedPacket.flags.as_bits_access_address_ok != 0;
         this.dataLength = parsedPacket.length;
         this.channelIndex = parsedPacket.channel_idx;
         this.channelFrequency = parsedPacket.channel_k;
         this.isDataPacket = this.channelIndex < 37;
+
+        if (usbPacketRx.pkt_type == IUbertoothInterface.UsbPktTypes.LE_PROMISC) {
+            promiscuousState = usbPacketRx.data[0];
+            switch (promiscuousState) {
+                case PromiscuousStates.CRC_INIT:
+                    this.promCRCInit = new byte[3];
+                    this.promCRCInit[0] = usbPacketRx.data[3];
+                    this.promCRCInit[1] = usbPacketRx.data[2];
+                    this.promCRCInit[2] = usbPacketRx.data[1];
+                    break;
+                case PromiscuousStates.HOP_INTERVAL:
+                    if (usbPacketRx.data.length < 3) {
+                        byte[] temp = new byte[1];
+                        temp[0] = usbPacketRx.data[1];
+                        this.promInterval = bytesToDouble(temp) * 1.25;
+                    } else {
+                        byte[] temp = new byte[2];
+                        temp[0] = usbPacketRx.data[2];
+                        temp[1] = usbPacketRx.data[1];
+                        this.promInterval = bytesToDouble(temp) * 1.25;
+                    }
+                    break;
+                case PromiscuousStates.HOP_INCREMENT:
+                    this.promIncrement = usbPacketRx.data[1];
+                default:
+                    this.promData = new byte[usbPacketRx.data.length];
+                    System.arraycopy(usbPacketRx.data, 0, this.promData, 0, usbPacketRx.data.length);
+            }
+        } else {
+            promiscuousState = PromiscuousStates.UNKNOWN;
+            promData = new byte[0];
+        }
 
         if (this.isDataPacket) {
             int llid = parsedPacket.symbols[4] & 0x3;
@@ -219,6 +269,10 @@ public class BlePacket {
         } else {
             return null;
         }
+    }
+
+    public String printAccessAddress() {
+        return getUnsignedString(accessAddress);
     }
 
     public String printChannelIndex() {

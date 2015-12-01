@@ -55,9 +55,16 @@ public class RunInPromiscuousMode implements Runnable {
         keyin = new BufferedReader(new InputStreamReader(System.in));
         BtleSniffer btleSniffer = new BtleSniffer();
         boolean isFollowing = false;
-        byte[] targetAddressMask = {(byte) 0x00, (byte) 0x22, (byte) 0xd0};     // Polar H7 manufacturer mask
-        // byte[] targetAddressMask = {(byte)0xc0, (byte)0x4b, (byte)0x72};     // Fitbit manufacturer mask
-        short channel = 2404;
+        short channel = 2470;
+        short squelch = -10;
+
+        // Found data
+        boolean isExploitingAA = false;
+        int lastAccessAddress = 0;
+        int foundAccessAddress = 0;
+        byte[] foundCRCinit = new byte[3];
+        double foundInterval = 0;
+        int foundIncrement = 0;
 
         System.out.println("==== BLES4J DEMO WITH POLAR H7 SENSOR ====");
         System.out.println("Configurations:");
@@ -68,12 +75,12 @@ public class RunInPromiscuousMode implements Runnable {
         // Load dynamic library via JNA
         System.out.println("Initializing...");
         IBtbb btbb = (IBtbb) Native.loadLibrary("btbb", IBtbb.class);
-        // Set channel
-        System.out.println("Configure channel to " + Short.toString(channel) + "MHz...");
 
         // Start sniffing
-        System.out.println("Start sniffing...");
-        btleSniffer.startPromiscuous(BtleSniffer.WriteMode.STACK, channel);
+        btleSniffer.startPromiscuous(BtleSniffer.WriteMode.STACK, channel, squelch);
+        System.out.println("Configure channel to " + Short.toString(channel) + "MHz...");
+        System.out.println("Configure squelch level...");
+        System.out.println("Start sniffing at " + Helper.printTime() + " ...");
 
         // Setup interrupt
         Thread keyPressedMonitor = new Thread(new RunInPromiscuousMode());
@@ -85,9 +92,40 @@ public class RunInPromiscuousMode implements Runnable {
                 if (packet != null) {
                     BlePacket blePacket = new BlePacket(btbb, packet);
                     if (!isFollowing) {
-                        System.out.println(blePacket.toString());
+                        // System.out.println(blePacket.toString());
+                        if (!isExploitingAA) {
+                            System.out.print("\r" + Helper.printTime() + " -- Potential access address: " +
+                                    blePacket.printAccessAddress() +
+                                    (blePacket.isAccessAddressValid ? " -- valid format" : " -- not valid format"));
+                            lastAccessAddress = blePacket.accessAddress;
+                        }
+                        if (blePacket.packetType == IUbertoothInterface.UsbPktTypes.LE_PROMISC) {
+                            switch (blePacket.promiscuousState) {
+                                case BlePacket.PromiscuousStates.CRC_INIT:
+                                    System.out.print("\r                                                                ");
+                                    System.out.println("\rFound Access Address!");
+                                    System.out.println("Found CRC: " + Helper.bytesToHex(blePacket.promCRCInit));
+                                    foundAccessAddress = lastAccessAddress;
+                                    System.arraycopy(blePacket.promCRCInit, 0, foundCRCinit, 0, 3);
+                                    isExploitingAA = true;
+                                    break;
+                                case BlePacket.PromiscuousStates.HOP_INTERVAL:
+                                    System.out.print("\r                                                                ");
+                                    System.out.println("\rFound Hop Interval: " + Double.toString(blePacket.promInterval) + "ms");
+                                    foundInterval = blePacket.promInterval;
+                                    break;
+                                case BlePacket.PromiscuousStates.HOP_INCREMENT:
+                                    System.out.print("\r                                                                ");
+                                    System.out.println("\rFound Hop Increment: " + Integer.toString(blePacket.promIncrement));
+                                    System.out.println("Start following...");
+                                    foundIncrement = blePacket.promIncrement;
+                                    isFollowing = true;
+                            }
+                        } else if (isExploitingAA) {
+                            System.out.print("\r" + Helper.printTime() + " -- Continue exploiting...");
+                        }
                     } else {
-
+                        Helper.printHrData(blePacket);
                     }
                 }
 
